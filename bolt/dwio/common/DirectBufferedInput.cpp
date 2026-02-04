@@ -246,6 +246,11 @@ void DirectBufferedInput::readRegions(
           if (asyncLoad.load->state() != DirectCoalescedLoad::State::kPlanned) {
             return;
           }
+          if (asyncLoad.asyncThreadCtx->isClosed()) {
+            return;
+          }
+
+          connector::AsyncThreadCtx::Guard guard(asyncLoad.asyncThreadCtx);
 
           // first check available memory allows to preload data, even if not,
           // the non-preload load will be sync loaded on the main thread.

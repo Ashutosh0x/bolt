@@ -166,9 +166,7 @@ class DirectBufferedInput : public BufferedInput {
       std::shared_ptr<cache::ScanTracker> tracker,
       uint64_t groupId,
       std::shared_ptr<IoStatistics> ioStats,
-      folly::Executor* executor,
-      const io::ReaderOptions& readerOptions,
-      connector::AsyncThreadCtx* asyncThreadCtx)
+      std::shared_ptr<connector::AsyncThreadCtx> asyncThreadCtx)
       : BufferedInput(
             std::move(readFile),
             readerOptions.getMemoryPool(),
@@ -181,7 +179,7 @@ class DirectBufferedInput : public BufferedInput {
         executor_(executor),
         fileSize_(input_->getLength()),
         options_(readerOptions),
-        asyncThreadCtx_(asyncThreadCtx) {}
+        asyncThreadCtx_(std::move(asyncThreadCtx)) {}
 
   ~DirectBufferedInput() override {
     streamToCoalescedLoad_.wlock()->clear();
@@ -262,7 +260,7 @@ class DirectBufferedInput : public BufferedInput {
       std::shared_ptr<IoStatistics> ioStats,
       folly::Executor* executor,
       const io::ReaderOptions& readerOptions,
-      connector::AsyncThreadCtx* asyncThreadCtx)
+      std::shared_ptr<connector::AsyncThreadCtx> asyncThreadCtx)
       : BufferedInput(std::move(input), readerOptions.getMemoryPool()),
         fileNum_(fileNum),
         tracker_(std::move(tracker)),
@@ -271,7 +269,7 @@ class DirectBufferedInput : public BufferedInput {
         executor_(executor),
         fileSize_(input_->getLength()),
         options_(readerOptions),
-        asyncThreadCtx_(asyncThreadCtx) {}
+        asyncThreadCtx_(std::move(asyncThreadCtx)) {}
 
   std::vector<int32_t> groupRequests(
       const std::vector<LoadRequest*>& requests,
@@ -297,13 +295,12 @@ class DirectBufferedInput : public BufferedInput {
     explicit AsyncLoadHolder(
         std::shared_ptr<cache::CoalescedLoad> load,
         int32_t prefetchMemoryPercent,
-        connector::AsyncThreadCtx* asyncThreadCtx)
+        std::shared_ptr<connector::AsyncThreadCtx> asyncThreadCtx)
         : load(std::move(load)),
           prefetchMemoryPercent_(prefetchMemoryPercent),
-          asyncThreadCtx(asyncThreadCtx),
-          inGuard_(asyncThreadCtx) {
-      BOLT_CHECK(asyncThreadCtx);
-      preloadBytesLimit_ = asyncThreadCtx->preloadBytesLimit();
+          asyncThreadCtx(std::move(asyncThreadCtx)) {
+      BOLT_CHECK(this->asyncThreadCtx);
+      preloadBytesLimit_ = this->asyncThreadCtx->preloadBytesLimit();
     }
 
     AsyncLoadHolder(const AsyncLoadHolder&) = delete;
@@ -312,11 +309,9 @@ class DirectBufferedInput : public BufferedInput {
     AsyncLoadHolder(AsyncLoadHolder&& other) noexcept
         : load(std::move(other.load)),
           prefetchMemoryPercent_(other.prefetchMemoryPercent_),
-          asyncThreadCtx(other.asyncThreadCtx),
+          asyncThreadCtx(std::move(other.asyncThreadCtx)),
           preloadBytesLimit_(other.preloadBytesLimit_),
-          inGuard_(std::move(other.inGuard_)),
           addedBytes_(other.addedBytes_) {
-      other.asyncThreadCtx = nullptr;
       other.addedBytes_ = 0;
     }
 
@@ -374,9 +369,8 @@ class DirectBufferedInput : public BufferedInput {
 
     std::shared_ptr<cache::CoalescedLoad> load;
     int32_t prefetchMemoryPercent_{30};
-    connector::AsyncThreadCtx* asyncThreadCtx;
+    std::shared_ptr<connector::AsyncThreadCtx> asyncThreadCtx;
     uint64_t preloadBytesLimit_{0};
-    connector::AsyncThreadCtx::Guard inGuard_;
 
     mutable int64_t addedBytes_{0};
 
@@ -414,7 +408,7 @@ class DirectBufferedInput : public BufferedInput {
   std::vector<std::shared_ptr<cache::CoalescedLoad>> coalescedLoads_;
 
   io::ReaderOptions options_;
-  connector::AsyncThreadCtx* asyncThreadCtx_ = nullptr;
+  std::shared_ptr<connector::AsyncThreadCtx> asyncThreadCtx_ = nullptr;
 };
 
 } // namespace bytedance::bolt::dwio::common

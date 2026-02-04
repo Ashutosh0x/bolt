@@ -438,9 +438,20 @@ class AsyncThreadCtx {
     return allowPreload_.load();
   }
 
+  enum class State { kActive, kClosed };
+
+  void close() {
+    state_ = State::kClosed;
+  }
+
+  bool isClosed() const {
+    return state_ == State::kClosed;
+  }
+
   class Guard {
    public:
-    Guard(AsyncThreadCtx* ctx, int64_t bytes = 0) : ctx_(ctx), bytes_(bytes) {
+    Guard(std::shared_ptr<AsyncThreadCtx> ctx, int64_t bytes = 0)
+        : ctx_(std::move(ctx)), bytes_(bytes) {
       if (ctx_) {
         ctx_->in();
         ctx_->addPreloadingBytes(bytes_);
@@ -457,8 +468,9 @@ class AsyncThreadCtx {
     Guard(const Guard&) = delete;
     Guard& operator=(const Guard&) = delete;
 
-    Guard(Guard&& other) noexcept : ctx_(other.ctx_), bytes_(other.bytes_) {
-      other.ctx_ = nullptr;
+    Guard(Guard&& other) noexcept
+        : ctx_(std::move(other.ctx_)), bytes_(other.bytes_) {
+      other.bytes_ = 0;
     }
 
     Guard& operator=(Guard&& other) noexcept {
@@ -467,15 +479,15 @@ class AsyncThreadCtx {
           ctx_->out();
           ctx_->addPreloadingBytes(-bytes_);
         }
-        ctx_ = other.ctx_;
+        ctx_ = std::move(other.ctx_);
         bytes_ = other.bytes_;
-        other.ctx_ = nullptr;
+        other.bytes_ = 0;
       }
       return *this;
     }
 
    private:
-    AsyncThreadCtx* ctx_;
+    std::shared_ptr<AsyncThreadCtx> ctx_;
     int64_t bytes_;
   };
 
@@ -487,6 +499,7 @@ class AsyncThreadCtx {
   std::condition_variable cv_;
   std::atomic_bool allowPreload_{true};
   bool adaptive_{true};
+  std::atomic<State> state_{State::kActive};
 };
 
 /// Collection of context data for use in a DataSource, IndexSource or DataSink.
@@ -500,7 +513,7 @@ class ConnectorQueryCtx {
       memory::MemoryPool* connectorPool,
       const config::ConfigBase* sessionProperties,
       const common::SpillConfig* spillConfig,
-      connector::AsyncThreadCtx* const asyncThreadCtx,
+      std::shared_ptr<connector::AsyncThreadCtx> asyncThreadCtx,
       std::unique_ptr<core::ExpressionEvaluator> expressionEvaluator,
       cache::AsyncDataCache* cache,
       const std::string& queryId,
@@ -511,7 +524,7 @@ class ConnectorQueryCtx {
         connectorPool_(connectorPool),
         sessionProperties_(sessionProperties),
         spillConfig_(spillConfig),
-        asyncThreadCtx_(asyncThreadCtx),
+        asyncThreadCtx_(std::move(asyncThreadCtx)),
         expressionEvaluator_(std::move(expressionEvaluator)),
         cache_(cache),
         scanId_(fmt::format("{}.{}", taskId, planNodeId)),
@@ -575,7 +588,7 @@ class ConnectorQueryCtx {
     return planNodeId_;
   }
 
-  AsyncThreadCtx* asyncThreadCtx() const {
+  std::shared_ptr<AsyncThreadCtx> asyncThreadCtx() const {
     return asyncThreadCtx_;
   }
 
@@ -584,7 +597,7 @@ class ConnectorQueryCtx {
   memory::MemoryPool* const connectorPool_;
   const config::ConfigBase* const sessionProperties_;
   const common::SpillConfig* const spillConfig_;
-  AsyncThreadCtx* const asyncThreadCtx_;
+  std::shared_ptr<AsyncThreadCtx> asyncThreadCtx_;
   std::unique_ptr<core::ExpressionEvaluator> expressionEvaluator_;
   cache::AsyncDataCache* cache_;
   const std::string scanId_;
