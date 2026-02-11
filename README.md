@@ -22,7 +22,7 @@ Bolt focuses on the physical execution layer of DBMS while providing first-class
 
 Frameworks:
 * [Apache Gluten](https://github.com/apache/incubator-gluten/discussions/10929#discussioncomment-15037342) for Spark
-* [OpenSearch](https://github.com/opensearch-project/sql/issues/4812?open_in_browser=true) for ElasticSearch
+* [OpenSearch](https://github.com/opensearch-project/sql/issues/4812?open_in_browser=true) for OpenSearch
 * Flink (Coming Soon)
 * ...
 
@@ -37,7 +37,7 @@ Storage Formats:
 
 ### Enterprise-Grade Performance, Result Consistency & Feature Parity
 
-Bolt is designed as a seamless acceleration layer that requires minimum code changes to the existing user jobs. Results/Performance comparison against original frameworks is performed on regular basis to capture regression & corner cases. Key features including
+Bolt is designed as a seamless acceleration layer that requires minimal code changes to existing user jobs. Performance and result comparisons against original frameworks are performed regularly to catch regressions and corner cases. Key features include:
 * Adaptive Task Parallelism
 * Native Memory Management & Dynamic Off-heap Threshold
 * Operator Fusion
@@ -53,7 +53,7 @@ git clone https://github.com/bytedance/bolt.git
 cd bolt
 ```
 
-### Setup Develop Env
+### Set Up the Development Environment
 We provide scripts to help developers configure the environment and install dependencies.
 ```shell
 scripts/setup-dev-env.sh
@@ -61,7 +61,7 @@ scripts/setup-dev-env.sh
 
 Bolt uses [Conan](https://conan.io/) as its dependency management tool, which is an open source and multi-platform package manager.
 
-This script exports conan recipes to local cache. For the first time, dependencies will be built from source and installed into local cache. You can setup your own [conan server](https://docs.conan.io/2/reference/conan_server.html#conan-server) to accelerate building.
+This script exports Conan recipes to the local cache. On first run, dependencies are built from source and installed into the cache. You can set up your own [Conan server](https://docs.conan.io/2/reference/conan_server.html#conan-server) to accelerate builds.
 
 ### Building Bolt
 #### Building Bolt for Presto
@@ -101,7 +101,7 @@ You can use the `make release && make export_release` command to compile and exp
 
 ```python
 # Take gluten for example:
-class GluenConan(ConanFile):
+class GlutenConan(ConanFile):
   def requirements(self):
     bolt_version="main"
     self.requires(f"bolt/{bolt_version}", transitive_headers=True, transitive_libs=True)
