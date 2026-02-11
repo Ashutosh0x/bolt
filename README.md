@@ -1,8 +1,8 @@
 <img src="static/logo.png" alt="Bolt logo" width="100%" align="center" />
 
-Bolt is a C++ acceleration library providing composable, extensible and performant data processing toolkit. It is designed to provide generic and unified interfaces which can be pluggable into "any framework" running on "any hardware" to consume "any data source".
+Bolt is a C++ acceleration library that provides a composable, extensible, and performant data processing toolkit. It is designed to provide generic and unified interfaces that can be plugged into "any framework" running on "any hardware" to consume "any data source".
 
-Initially derived from [Velox](https://github.com/facebookincubator/velox) project, Bolt is created by ByteDance to embrace and unify the contributions from the community. It has been validated on Spark/Flink/Presto/ElasticSearch framework running on x64&ARM CPU/DPU/GPU accessing Parquet/ORC/Text/CSV/Lance file format managed under Hive/Paimon table to provide enterprise-grade cost optimization, results consistency and feature parity
+Initially derived from the [Velox](https://github.com/facebookincubator/velox) project, Bolt was created by ByteDance to embrace and unify contributions from the community. It has been validated on Spark/Flink/Presto/OpenSearch frameworks running on x64 and ARM CPU/DPU/GPU platforms, accessing Parquet/ORC/Text/CSV/Lance file formats managed under Hive/Paimon tables to provide enterprise-grade cost optimization, result consistency, and feature parity.
 
 ## Why Bolt?
 
@@ -11,10 +11,10 @@ Initially derived from [Velox](https://github.com/facebookincubator/velox) proje
 "Contributions may come in many forms, and all of them are valuable". The governance model of Bolt community will be in line with the [Apache Way](https://www.apache.org/theapacheway/) and "Community over Code" spirit. While we are working out the detailed governance model on a tree-tier structure of Contributor / Maintainers / Project Management Committee(PMC), we are committed to treating the open source repository as the source of truth, including but not limited to
 * Public CI pipelines
 * Clear dependency management as code
-* Equal code review opportunity for manintainers
+* Equal code review opportunities for maintainers
 * Transparent design discussion
 
-This will ensure the smooth & credible experience for code contribution
+This helps ensure a smooth and credible contribution experience.
 
 ### Embrace the Analytical Ecosystem
 
@@ -22,7 +22,7 @@ Bolt focuses on the physical execution layer of DBMS while providing first-class
 
 Frameworks:
 * [Apache Gluten](https://github.com/apache/incubator-gluten/discussions/10929#discussioncomment-15037342) for Spark
-* [OpenSearch](https://github.com/opensearch-project/sql/issues/4812?open_in_browser=true) for ElasticSearch
+* [OpenSearch](https://github.com/opensearch-project/sql/issues/4812?open_in_browser=true) for OpenSearch
 * Flink (Coming Soon)
 * ...
 
@@ -35,13 +35,13 @@ Storage Formats:
 * Lance (Coming Soon)
 * ...
 
-### Enterprise-Grade Performance, Result Consistency & Feature parity
+### Enterprise-Grade Performance, Result Consistency & Feature Parity
 
-Bolt is designed as a seamless acceleration layer that requires minimum code changes to the existing user jobs. Results/Performance comparison against original frameworks is performed on regular basis to capture regression & corner cases. Key features including
+Bolt is designed as a seamless acceleration layer that requires minimal code changes to existing user jobs. Performance and result comparisons against original frameworks are performed regularly to catch regressions and corner cases. Key features include:
 * Adaptive Task Parallelism
-* Native Memory Management & Dynamic offheap threshold
+* Native Memory Management & Dynamic Off-heap Threshold
 * Operator Fusion
-* JIT for hotspot expression
+* JIT for Hotspot Expressions
 * Native Shuffle Support
 * ...
 
@@ -53,7 +53,7 @@ git clone https://github.com/bytedance/bolt.git
 cd bolt
 ```
 
-### Setup Develop Env
+### Set Up the Development Environment
 We provide scripts to help developers configure the environment and install dependencies.
 ```shell
 scripts/setup-dev-env.sh
@@ -61,7 +61,7 @@ scripts/setup-dev-env.sh
 
 Bolt uses [Conan](https://conan.io/) as its dependency management tool, which is an open source and multi-platform package manager.
 
-This script exports conan recipes to local cache. For the first time, dependencies will be built from source and installed into local cache. You can setup your own [conan server](https://docs.conan.io/2/reference/conan_server.html#conan-server) to accelerate building.
+This script exports Conan recipes to the local cache. On first run, dependencies are built from source and installed into the cache. You can set up your own [Conan server](https://docs.conan.io/2/reference/conan_server.html#conan-server) to accelerate builds.
 
 ### Building Bolt
 #### Building Bolt for Presto
@@ -101,7 +101,7 @@ You can use the `make release && make export_release` command to compile and exp
 
 ```python
 # Take gluten for example:
-class GluenConan(ConanFile):
+class GlutenConan(ConanFile):
   def requirements(self):
     bolt_version="main"
     self.requires(f"bolt/{bolt_version}", transitive_headers=True, transitive_libs=True)
